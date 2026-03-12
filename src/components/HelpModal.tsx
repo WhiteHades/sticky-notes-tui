@@ -12,9 +12,13 @@ const shortcuts = [
   ["q", "quit"],
 ] as const;
 
-export function HelpModal() {
+export interface HelpModalProps {
+  onClose: () => void;
+}
+
+export function HelpModal({ onClose }: HelpModalProps) {
   return (
-    <ModalFrame title=" help " accent={theme.surface1} width={42} height={14}>
+    <ModalFrame title=" help " accent={theme.surface1} width={42} height={14} onDismiss={onClose}>
       <box flexGrow={1} padding={1} gap={0} flexDirection="column" backgroundColor={theme.base}>
         {shortcuts.map(([keyLabel, meaning]) => (
           <box key={keyLabel} height={1} justifyContent="space-between">
@@ -28,7 +32,7 @@ export function HelpModal() {
         ))}
       </box>
 
-      <box height={2} paddingX={1} justifyContent="flex-end" alignItems="center">
+      <box height={2} paddingX={1} justifyContent="flex-end" alignItems="center" onMouseDown={onClose}>
         <text>
           <span fg={theme.red}>esc</span>
           <span fg={theme.overlay1}> close</span>

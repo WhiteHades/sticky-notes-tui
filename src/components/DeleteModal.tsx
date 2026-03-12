@@ -11,7 +11,7 @@ export interface DeleteModalProps {
 
 export function DeleteModal({ note, onConfirm, onCancel }: DeleteModalProps) {
   return (
-    <ModalFrame title=" remove note " accent={theme.red} width={42} height={9}>
+    <ModalFrame title=" remove note " accent={theme.red} width={42} height={9} onDismiss={onCancel}>
       <box flexGrow={1} padding={1} gap={1} flexDirection="column" justifyContent="center" backgroundColor={theme.base}>
         <text>
           <span fg={theme.text}>delete this note?</span>

@@ -13,16 +13,17 @@ export interface SearchModalProps {
   focus: SearchFocus;
   onQueryChange: (value: string) => void;
   onPick: (noteId: string) => void;
+  onClose: () => void;
 }
 
-export function SearchModal({ query, results, resultIndex, focus, onQueryChange, onPick }: SearchModalProps) {
+export function SearchModal({ query, results, resultIndex, focus, onQueryChange, onPick, onClose }: SearchModalProps) {
   const visibleCount = 8;
   const safeIndex = Math.max(0, Math.min(resultIndex, Math.max(0, results.length - 1)));
   const start = Math.max(0, Math.min(Math.max(0, results.length - visibleCount), safeIndex - Math.floor(visibleCount / 2)));
   const visible = results.slice(start, start + visibleCount);
 
   return (
-    <ModalFrame title=" search " accent={theme.surface1} width={60} height={16}>
+    <ModalFrame title=" search " accent={theme.surface1} width={60} height={16} onDismiss={onClose}>
       <box flexGrow={1} padding={1} gap={1} flexDirection="column" backgroundColor={theme.base}>
         <box border borderStyle="rounded" borderColor={focus === "query" ? theme.text : theme.surface1} backgroundColor={theme.base} paddingX={1}>
           <input
@@ -70,7 +71,7 @@ export function SearchModal({ query, results, resultIndex, focus, onQueryChange,
         </box>
       </box>
 
-      <box height={2} paddingX={1} justifyContent="flex-end" alignItems="center">
+      <box height={2} paddingX={1} justifyContent="flex-end" alignItems="center" onMouseDown={onClose}>
         <text>
           <span fg={theme.red}>esc</span>
           <span fg={theme.overlay1}> close</span>

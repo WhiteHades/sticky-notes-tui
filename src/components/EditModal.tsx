@@ -16,7 +16,7 @@ export function EditModal({ note, onContentChange, onClose }: EditModalProps) {
   const contentRef = useRef<TextareaRenderable | null>(null);
 
   return (
-    <ModalFrame title=" note " accent={theme.surface1} width={76} height={22}>
+    <ModalFrame title=" note " accent={theme.surface1} width={76} height={22} onDismiss={onClose}>
       <box flexGrow={1} padding={1} backgroundColor={theme.base}>
         <textarea
           key={note.note_id}

@@ -2,16 +2,17 @@
 
 `opentui-sticky-notes` is a Bun + TypeScript sticky notes TUI built with OpenTUI.
 
-It replaces the old Textual/Python grid with a cleaner two-pane layout inspired by `btop` and `lazygit`: rounded borders, tight spacing, stronger focus states, vim-friendly movement, and modal flows that stay keyboard-first.
+It is now a much simpler sticky-note board: one canvas, soft catppuccin pastel notes, dynamic note sizing, mouse dragging, keyboard movement, and quiet autosave.
 
 ## highlights
 
 - bun + typescript + opentui only
-- edge-to-edge panel layout with rounded borders
+- minimal sticky-note board on a `#1e1e2e` canvas
 - vim-friendly navigation: `h j k l`, `g`, `G`, `/`, `?`
-- add, edit, delete, search, sort, pin, and colour notes
-- debounced autosave plus manual `ctrl+s`
+- add, edit, delete, search, drag, and reorder notes
+- autosave while editing and on quit
 - one-time import from the legacy `sticky-notes` storage path into the new `opentui-sticky-notes` path
+- text selection copies through OSC52
 
 ## install
 
@@ -33,37 +34,25 @@ bun run dev
 
 ## keybindings
 
-### global
-
-- `q`, `ctrl+c` quit
-- `?` help
-- `ctrl+s` save immediately
-- `o` cycle sort mode
-- `1-9` set the selected note colour
-
-### notes pane
-
-- `j`, `k` move between notes
-- `g`, `G` jump to first or last note
-- `l` move focus into the preview pane
 - `a` add a note
-- `e`, `enter` edit the selected note
+- `enter`, `e` edit the selected note
 - `d` delete the selected note
-- `p` toggle pin
 - `/` search notes
+- `h`, `j`, `k`, `l` move selection between notes
+- `shift+h`, `shift+j`, `shift+k`, `shift+l` move the selected note
+- `f` bring the selected note to the front
+- `g`, `G` jump to the first or last note
+- `?` help
+- `q`, `ctrl+c` quit
+- `esc` closes the current modal
 
-### preview pane
+### mouse
 
-- `j`, `k` scroll note content
-- `pageup`, `pagedown` scroll faster
-- `h` move focus back to the notes pane
-- `e`, `enter` edit the selected note
-
-### modal flows
-
-- `tab`, `shift+tab` move between fields
-- `esc` close the current modal
-- `ctrl+s` save from the edit modal
+- click a note to select it
+- double click a note to edit it
+- double click the canvas to create a note
+- drag the note grip to move notes around
+- select text to copy it through OSC52
 
 ## storage
 

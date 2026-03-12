@@ -7,10 +7,11 @@ export interface ModalFrameProps {
   accent: string;
   width: number | "auto" | `${number}%`;
   height?: number | "auto" | `${number}%`;
+  onDismiss?: () => void;
   children: ReactNode;
 }
 
-export function ModalFrame({ title, accent, width, height, children }: ModalFrameProps) {
+export function ModalFrame({ title, accent, width, height, onDismiss, children }: ModalFrameProps) {
   return (
     <box
       position="absolute"
@@ -22,6 +23,7 @@ export function ModalFrame({ title, accent, width, height, children }: ModalFram
       justifyContent="center"
       alignItems="center"
       backgroundColor={overlayColour}
+      onMouseDown={() => onDismiss?.()}
     >
       <box
         width={width}
@@ -32,6 +34,7 @@ export function ModalFrame({ title, accent, width, height, children }: ModalFram
         backgroundColor={theme.crust}
         flexDirection="column"
         title={title}
+        onMouseDown={(event) => event.stopPropagation()}
       >
         {children}
       </box>

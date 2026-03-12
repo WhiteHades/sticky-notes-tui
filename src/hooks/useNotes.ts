@@ -10,8 +10,6 @@ export function useNotes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const [storagePath, setStoragePath] = useState("");
-  const [loadError, setLoadError] = useState<string | null>(null);
 
   const skipPersistRef = useRef(true);
   const pendingSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -32,7 +30,7 @@ export function useNotes() {
     try {
       await saveNotes(snapshot);
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : "failed to save notes");
+      console.error("failed to save notes", error);
     }
   }, []);
 
@@ -49,13 +47,12 @@ export function useNotes() {
         skipPersistRef.current = true;
         setNotes(result.notes);
         setSelectedId(result.notes[0]?.note_id ?? null);
-        setStoragePath(result.path);
       } catch (error) {
         if (cancelled) {
           return;
         }
 
-        setLoadError(error instanceof Error ? error.message : "failed to load notes");
+        console.error("failed to load notes", error);
       } finally {
         if (!cancelled) {
           setLoaded(true);
@@ -154,13 +151,10 @@ export function useNotes() {
     [selectedNote, updateNote],
   );
 
-  const deleteSelected = useCallback(() => {
-    if (!selectedNote) {
-      return;
-    }
-
-    setNotes((current) => current.filter((entry) => entry.note_id !== selectedNote.note_id));
-  }, [selectedNote]);
+  const deleteById = useCallback((noteId: string) => {
+    setNotes((current) => current.filter((entry) => entry.note_id !== noteId));
+    setSelectedId((current) => (current === noteId ? null : current));
+  }, []);
 
   const bringToFront = useCallback((noteId: string) => {
     setNotes((current) => {
@@ -220,8 +214,6 @@ export function useNotes() {
     orderedNotes,
     selectedIndex,
     selectedNote,
-    storagePath,
-    loadError,
     selectById,
     selectDirection,
     selectFirst,
@@ -229,7 +221,7 @@ export function useNotes() {
     addFreshNote,
     updateNote,
     updateSelectedContent,
-    deleteSelected,
+    deleteById,
     bringToFront,
     moveNote,
     moveSelectedBy,

@@ -140,7 +140,7 @@ export function App() {
 
     if (modal.type === "delete") {
       if (key.name === "enter" || key.name === "y") {
-        notes.deleteSelected();
+        notes.deleteById(modal.note.note_id);
         closeModal();
         return;
       }
@@ -204,6 +204,7 @@ export function App() {
         const match = searchResults[modal.resultIndex];
         if (match) {
           notes.selectById(match.note_id);
+          notes.bringToFront(match.note_id);
           closeModal();
         }
       }
@@ -304,12 +305,6 @@ export function App() {
 
   return (
     <box width="100%" height="100%" backgroundColor={theme.base} position="relative">
-      <box position="absolute" left={2} top={1} zIndex={100}>
-        <text>
-          <span fg={theme.subtext1}>{notes.orderedNotes.length} notes</span>
-        </text>
-      </box>
-
       <BoardCanvas
         notes={notes.notes}
         selectedId={notes.selectedNote?.note_id ?? null}
@@ -326,7 +321,7 @@ export function App() {
         <DeleteModal
           note={modal.note}
           onConfirm={() => {
-            notes.deleteSelected();
+            notes.deleteById(modal.note.note_id);
             closeModal();
           }}
           onCancel={closeModal}
@@ -339,6 +334,7 @@ export function App() {
           results={searchResults}
           resultIndex={Math.min(modal.resultIndex, Math.max(0, searchResults.length - 1))}
           focus={modal.focus}
+          onClose={closeModal}
           onQueryChange={(value) =>
             setModal((current) =>
               current.type === "search"
@@ -348,12 +344,13 @@ export function App() {
           }
           onPick={(noteId) => {
             notes.selectById(noteId);
+            notes.bringToFront(noteId);
             closeModal();
           }}
         />
       ) : null}
 
-      {modal.type === "help" ? <HelpModal /> : null}
+      {modal.type === "help" ? <HelpModal onClose={closeModal} /> : null}
     </box>
   );
 }
