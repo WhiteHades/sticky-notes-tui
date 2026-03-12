@@ -8,25 +8,17 @@ export type Direction = "left" | "right" | "up" | "down";
 
 const noteGapX = 2;
 const noteGapY = 1;
-const noteHeight = 10;
+const noteHeight = 11;
 
 export function boardColumns(boardWidth: number): number {
-  if (boardWidth >= 120) {
-    return 3;
-  }
-
-  if (boardWidth >= 74) {
-    return 2;
-  }
-
-  return 1;
+  return Math.max(1, Math.min(4, Math.floor(boardWidth / 38)));
 }
 
 export function boardNoteWidth(boardWidth: number): number {
   const columns = boardColumns(boardWidth);
   const usableWidth = Math.max(30, boardWidth - 2);
   const width = Math.floor((usableWidth - noteGapX * (columns - 1)) / columns);
-  return Math.max(28, Math.min(40, width));
+  return Math.max(28, Math.min(42, width));
 }
 
 export function defaultPosition(index: number, boardWidth = 96): Pick<Note, "x" | "y"> {
@@ -98,10 +90,10 @@ export function notePreview(note: Pick<Note, "content">, width = 60): string {
 
 export function measureNote(content: string, preferredWidth = 36) {
   const printable = noteText({ content });
-  const innerWidth = Math.max(16, Math.min(36, preferredWidth - 4));
+  const innerWidth = Math.max(16, Math.min(38, preferredWidth - 4));
 
   const lines = wrapText(printable, innerWidth);
-  const visibleLines = lines.slice(0, 6);
+  const visibleLines = lines.slice(0, 7);
 
   return {
     width: innerWidth + 4,

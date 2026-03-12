@@ -4,8 +4,8 @@ import { ModalFrame } from "./ModalFrame";
 const shortcuts = [
   ["a", "new note"],
   ["enter", "edit selected"],
-  ["d", "delete selected"],
-  ["/", "search"],
+  ["r / d", "delete selected"],
+  ["s / /", "search"],
   ["o", "tidy board"],
   ["h j k l", "move selection"],
   ["shift+h j k l", "move note"],

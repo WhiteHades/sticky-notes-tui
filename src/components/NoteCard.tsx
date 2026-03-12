@@ -18,7 +18,7 @@ export function NoteCard({ note, cardWidth, selected, onActivate, onDragStart, o
   const tint = noteColour(note.note_id);
   const metrics = measureNote(note.content, cardWidth);
   const title = noteTitle(note, Math.max(12, cardWidth - 10));
-  const visibleBody = metrics.lines.slice(0, 5).join("\n");
+  const visibleBody = metrics.lines.slice(0, 6).join("\n");
 
   return (
     <box
@@ -30,8 +30,8 @@ export function NoteCard({ note, cardWidth, selected, onActivate, onDragStart, o
       zIndex={note.z}
       border
       borderStyle={selected ? "heavy" : "single"}
-      borderColor={selected ? theme.selection : tint}
-      backgroundColor={selected ? theme.selectionSoft : theme.crust}
+      borderColor={selected ? theme.text : tint}
+      backgroundColor={theme.crust}
       flexDirection="column"
       onMouseDown={(event) => {
         event.stopPropagation();
@@ -43,7 +43,7 @@ export function NoteCard({ note, cardWidth, selected, onActivate, onDragStart, o
         justifyContent="space-between"
         alignItems="center"
         paddingX={1}
-        backgroundColor={selected ? theme.surface0 : theme.mantle}
+        backgroundColor={selected ? theme.selectionSoft : theme.mantle}
         onMouseDown={(event) => {
           event.stopPropagation();
           onDragStart(note.note_id, event);
@@ -58,13 +58,13 @@ export function NoteCard({ note, cardWidth, selected, onActivate, onDragStart, o
         }}
       >
         <text>
-          <span fg={selected ? theme.text : theme.subtext1}>{title}</span>
+          <span fg={selected ? theme.text : tint}>{title}</span>
         </text>
         <text>
-          <span fg={tint}>●</span>
+          <span fg={selected ? theme.selection : tint}>●</span>
         </text>
       </box>
-      <box flexGrow={1} paddingX={1} paddingTop={1} paddingBottom={1} backgroundColor={selected ? theme.surface0 : theme.base}>
+      <box flexGrow={1} paddingX={1} paddingTop={1} paddingBottom={1} backgroundColor={selected ? theme.panel : theme.base}>
         <text selectable fg={selected ? theme.text : theme.subtext1}>
           {visibleBody || noteText(note)}
         </text>

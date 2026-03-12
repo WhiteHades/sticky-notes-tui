@@ -10,7 +10,7 @@ import { SearchModal, type SearchFocus } from "./components/SearchModal";
 import { useNotes } from "./hooks/useNotes";
 import { theme } from "./theme";
 import type { Note } from "./types";
-import { boardNoteWidth, clampPosition, defaultPosition } from "./utils/notes";
+import { boardColumns, boardNoteWidth, clampPosition, defaultPosition, noteTitle } from "./utils/notes";
 import { searchNotes } from "./utils/search";
 
 type ModalState =
@@ -26,13 +26,14 @@ export function App() {
   const notes = useNotes();
 
   const [modal, setModal] = useState<ModalState>({ type: "none" });
-  const didInitialArrangeRef = useRef(false);
+  const arrangedColumnsRef = useRef<number | null>(null);
   const lastCanvasClickRef = useRef<number>(0);
   const lastNoteClickRef = useRef<{ time: number; noteId: string } | null>(null);
   const dragRef = useRef<{ noteId: string; startX: number; startY: number; originX: number; originY: number } | null>(null);
 
   const boardWidth = Math.max(40, width - 4);
   const boardHeight = Math.max(12, height - 5);
+  const columnCount = boardColumns(boardWidth);
 
   const searchResults = useMemo(() => {
     if (modal.type !== "search") {
@@ -59,15 +60,15 @@ export function App() {
   }, [renderer]);
 
   useEffect(() => {
-    if (!notes.loaded || didInitialArrangeRef.current) {
+    if (!notes.loaded) {
       return;
     }
 
-    didInitialArrangeRef.current = true;
-    if (notes.notes.length > 0) {
+    if (arrangedColumnsRef.current !== columnCount && notes.notes.length > 0) {
+      arrangedColumnsRef.current = columnCount;
       notes.arrangeNotes(boardWidth, boardHeight);
     }
-  }, [boardHeight, boardWidth, notes]);
+  }, [boardHeight, boardWidth, columnCount, notes]);
 
   const openEditor = (noteId: string) => {
     setModal({ type: "edit", noteId });
@@ -248,7 +249,7 @@ export function App() {
       return;
     }
 
-    if (key.name === "/") {
+    if (key.name === "/" || key.name === "s") {
       setModal({ type: "search", query: "", focus: "query", resultIndex: 0 });
       return;
     }
@@ -260,7 +261,7 @@ export function App() {
       return;
     }
 
-    if (key.name === "d" && notes.selectedNote) {
+    if ((key.name === "d" || key.name === "r") && notes.selectedNote) {
       setModal({ type: "delete", note: notes.selectedNote });
       return;
     }
@@ -352,23 +353,28 @@ export function App() {
       </box>
 
       <box position="absolute" left={0} right={0} bottom={0} height={1} backgroundColor={theme.mantle} paddingX={1}>
-        <text>
-          <span fg={theme.peach}>a</span>
-          <span fg={theme.subtext0}> add </span>
-          <span fg={theme.yellow}>enter</span>
-          <span fg={theme.subtext0}> edit </span>
-          <span fg={theme.red}>d</span>
-          <span fg={theme.subtext0}> delete </span>
-          <span fg={theme.green}>/</span>
-          <span fg={theme.subtext0}> search </span>
-          <span fg={theme.blue}>o</span>
-          <span fg={theme.subtext0}> tidy </span>
-          <span fg={theme.lavender}>h j k l</span>
-          <span fg={theme.subtext0}> move </span>
-          <span fg={theme.sky}>shift+h j k l</span>
-          <span fg={theme.subtext0}> drag </span>
-          <span fg={theme.overlay1}>? help  q quit</span>
-        </text>
+        <box width="100%" justifyContent="space-between">
+          <text>
+            <span fg={theme.peach}>a</span>
+            <span fg={theme.subtext0}> add </span>
+            <span fg={theme.yellow}>enter</span>
+            <span fg={theme.subtext0}> edit </span>
+            <span fg={theme.red}>r/d</span>
+            <span fg={theme.subtext0}> delete </span>
+            <span fg={theme.green}>s//</span>
+            <span fg={theme.subtext0}> search </span>
+            <span fg={theme.blue}>o</span>
+            <span fg={theme.subtext0}> tidy </span>
+            <span fg={theme.lavender}>h j k l</span>
+            <span fg={theme.subtext0}> move </span>
+            <span fg={theme.overlay1}>? help  q quit</span>
+          </text>
+          <text>
+            <span fg={theme.overlay1}>
+              {notes.selectedNote ? `selected: ${noteTitle(notes.selectedNote, 18)}` : "no note selected"}
+            </span>
+          </text>
+        </box>
       </box>
 
       {modal.type === "edit" ? (editingNote ? <EditModal note={editingNote} onContentChange={notes.updateSelectedContent} onClose={closeModal} /> : null) : null}
