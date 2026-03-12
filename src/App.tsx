@@ -10,7 +10,7 @@ import { SearchModal, type SearchFocus } from "./components/SearchModal";
 import { useNotes } from "./hooks/useNotes";
 import { theme } from "./theme";
 import type { Note } from "./types";
-import { clampPosition } from "./utils/notes";
+import { boardNoteWidth, clampPosition, defaultPosition } from "./utils/notes";
 import { searchNotes } from "./utils/search";
 
 type ModalState =
@@ -26,12 +26,13 @@ export function App() {
   const notes = useNotes();
 
   const [modal, setModal] = useState<ModalState>({ type: "none" });
-  const lastCanvasClickRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  const didInitialArrangeRef = useRef(false);
+  const lastCanvasClickRef = useRef<number>(0);
   const lastNoteClickRef = useRef<{ time: number; noteId: string } | null>(null);
   const dragRef = useRef<{ noteId: string; startX: number; startY: number; originX: number; originY: number } | null>(null);
 
-  const boardWidth = Math.max(40, width - 2);
-  const boardHeight = Math.max(12, height - 2);
+  const boardWidth = Math.max(40, width - 4);
+  const boardHeight = Math.max(12, height - 5);
 
   const searchResults = useMemo(() => {
     if (modal.type !== "search") {
@@ -57,13 +58,25 @@ export function App() {
     };
   }, [renderer]);
 
+  useEffect(() => {
+    if (!notes.loaded || didInitialArrangeRef.current) {
+      return;
+    }
+
+    didInitialArrangeRef.current = true;
+    if (notes.notes.length > 0) {
+      notes.arrangeNotes(boardWidth, boardHeight);
+    }
+  }, [boardHeight, boardWidth, notes]);
+
   const openEditor = (noteId: string) => {
     setModal({ type: "edit", noteId });
   };
 
-  const createNoteAt = (x: number, y: number) => {
-    const created = notes.addFreshNote();
-    const clamped = clampPosition({ ...created, x, y }, boardWidth, boardHeight);
+  const createNote = () => {
+    const created = notes.addFreshNote(boardWidth);
+    const fallback = defaultPosition(notes.orderedNotes.length, boardWidth);
+    const clamped = clampPosition({ ...created, ...fallback }, boardWidth, boardHeight, boardNoteWidth(boardWidth));
     notes.moveNote(created.note_id, clamped.x, clamped.y, boardWidth, boardHeight);
     notes.bringToFront(created.note_id);
     openEditor(created.note_id);
@@ -71,16 +84,15 @@ export function App() {
 
   const closeModal = () => setModal({ type: "none" });
 
-  const handleCanvasClick = (x: number, y: number) => {
+  const handleCanvasClick = () => {
     const now = Date.now();
-    const last = lastCanvasClickRef.current;
-    if (last && now - last.time < 260 && Math.abs(last.x - x) < 2 && Math.abs(last.y - y) < 2) {
-      createNoteAt(x - 8, y - 2);
-      lastCanvasClickRef.current = null;
+    if (now - lastCanvasClickRef.current < 260) {
+      createNote();
+      lastCanvasClickRef.current = 0;
       return;
     }
 
-    lastCanvasClickRef.current = { time: now, x, y };
+    lastCanvasClickRef.current = now;
   };
 
   const handleNoteActivate = (noteId: string) => {
@@ -227,7 +239,12 @@ export function App() {
     }
 
     if (key.name === "a") {
-      createNoteAt(4 + (notes.orderedNotes.length % 4) * 6, 3 + (notes.orderedNotes.length % 5) * 2);
+      createNote();
+      return;
+    }
+
+    if (key.name === "o") {
+      notes.arrangeNotes(boardWidth, boardHeight);
       return;
     }
 
@@ -305,15 +322,54 @@ export function App() {
 
   return (
     <box width="100%" height="100%" backgroundColor={theme.base} position="relative">
-      <BoardCanvas
-        notes={notes.notes}
-        selectedId={notes.selectedNote?.note_id ?? null}
-        onActivate={handleNoteActivate}
-        onCanvasClick={handleCanvasClick}
-        onDragStart={handleDragStart}
-        onDrag={handleDrag}
-        onDragEnd={handleDragEnd}
-      />
+      <box position="absolute" top={0} left={0} right={0} height={1} backgroundColor={theme.mantle} paddingX={1}>
+        <box width="100%" justifyContent="space-between">
+          <text>
+            <span fg={theme.overlay1}>{notes.orderedNotes.length} notes</span>
+          </text>
+          <text>
+            <strong>
+              <span fg={theme.text}>opentui-sticky-notes</span>
+            </strong>
+          </text>
+          <text>
+            <span fg={theme.overlay1}>vim + mouse</span>
+          </text>
+        </box>
+      </box>
+
+      <box position="absolute" top={1} left={1} right={1} bottom={1}>
+        <BoardCanvas
+          notes={notes.notes}
+          selectedId={notes.selectedNote?.note_id ?? null}
+          boardWidth={boardWidth}
+          onActivate={handleNoteActivate}
+          onCanvasClick={handleCanvasClick}
+          onDragStart={handleDragStart}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
+        />
+      </box>
+
+      <box position="absolute" left={0} right={0} bottom={0} height={1} backgroundColor={theme.mantle} paddingX={1}>
+        <text>
+          <span fg={theme.peach}>a</span>
+          <span fg={theme.subtext0}> add </span>
+          <span fg={theme.yellow}>enter</span>
+          <span fg={theme.subtext0}> edit </span>
+          <span fg={theme.red}>d</span>
+          <span fg={theme.subtext0}> delete </span>
+          <span fg={theme.green}>/</span>
+          <span fg={theme.subtext0}> search </span>
+          <span fg={theme.blue}>o</span>
+          <span fg={theme.subtext0}> tidy </span>
+          <span fg={theme.lavender}>h j k l</span>
+          <span fg={theme.subtext0}> move </span>
+          <span fg={theme.sky}>shift+h j k l</span>
+          <span fg={theme.subtext0}> drag </span>
+          <span fg={theme.overlay1}>? help  q quit</span>
+        </text>
+      </box>
 
       {modal.type === "edit" ? (editingNote ? <EditModal note={editingNote} onContentChange={notes.updateSelectedContent} onClose={closeModal} /> : null) : null}
 

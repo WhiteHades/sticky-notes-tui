@@ -2,10 +2,11 @@ import type { MouseEvent } from "@opentui/core";
 
 import type { Note } from "../types";
 import { theme } from "../theme";
-import { measureNote, noteColour, noteText } from "../utils/notes";
+import { measureNote, noteColour, noteText, noteTitle } from "../utils/notes";
 
 export interface NoteCardProps {
   note: Note;
+  cardWidth: number;
   selected: boolean;
   onActivate: (noteId: string) => void;
   onDragStart: (noteId: string, event: MouseEvent) => void;
@@ -13,9 +14,11 @@ export interface NoteCardProps {
   onDragEnd: () => void;
 }
 
-export function NoteCard({ note, selected, onActivate, onDragStart, onDrag, onDragEnd }: NoteCardProps) {
+export function NoteCard({ note, cardWidth, selected, onActivate, onDragStart, onDrag, onDragEnd }: NoteCardProps) {
   const tint = noteColour(note.note_id);
-  const metrics = measureNote(note.content);
+  const metrics = measureNote(note.content, cardWidth);
+  const title = noteTitle(note, Math.max(12, cardWidth - 10));
+  const visibleBody = metrics.lines.slice(0, 5).join("\n");
 
   return (
     <box
@@ -26,9 +29,9 @@ export function NoteCard({ note, selected, onActivate, onDragStart, onDrag, onDr
       height={metrics.height}
       zIndex={note.z}
       border
-      borderStyle="rounded"
-      borderColor={selected ? theme.text : theme.base}
-      backgroundColor={tint}
+      borderStyle={selected ? "heavy" : "single"}
+      borderColor={selected ? theme.selection : tint}
+      backgroundColor={selected ? theme.selectionSoft : theme.crust}
       flexDirection="column"
       onMouseDown={(event) => {
         event.stopPropagation();
@@ -37,8 +40,10 @@ export function NoteCard({ note, selected, onActivate, onDragStart, onDrag, onDr
     >
       <box
         height={1}
-        justifyContent="center"
+        justifyContent="space-between"
         alignItems="center"
+        paddingX={1}
+        backgroundColor={selected ? theme.surface0 : theme.mantle}
         onMouseDown={(event) => {
           event.stopPropagation();
           onDragStart(note.note_id, event);
@@ -52,11 +57,16 @@ export function NoteCard({ note, selected, onActivate, onDragStart, onDrag, onDr
           onDragEnd();
         }}
       >
-        <text fg={theme.base}>..</text>
+        <text>
+          <span fg={selected ? theme.text : theme.subtext1}>{title}</span>
+        </text>
+        <text>
+          <span fg={tint}>●</span>
+        </text>
       </box>
-      <box flexGrow={1} paddingX={1} paddingBottom={1}>
-        <text selectable fg={theme.base}>
-          {noteText(note)}
+      <box flexGrow={1} paddingX={1} paddingTop={1} paddingBottom={1} backgroundColor={selected ? theme.surface0 : theme.base}>
+        <text selectable fg={selected ? theme.text : theme.subtext1}>
+          {visibleBody || noteText(note)}
         </text>
       </box>
     </box>

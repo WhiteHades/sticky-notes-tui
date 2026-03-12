@@ -6,6 +6,7 @@ const shortcuts = [
   ["enter", "edit selected"],
   ["d", "delete selected"],
   ["/", "search"],
+  ["o", "tidy board"],
   ["h j k l", "move selection"],
   ["shift+h j k l", "move note"],
   ["f", "bring front"],

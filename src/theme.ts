@@ -4,6 +4,7 @@ export const theme = {
   base: "#1e1e2e",
   mantle: "#181825",
   crust: "#11111b",
+  panel: "#161622",
   surface0: "#313244",
   surface1: "#45475a",
   surface2: "#585b70",
@@ -25,6 +26,8 @@ export const theme = {
   sky: "#89dceb",
   blue: "#89b4fa",
   lavender: "#b4befe",
+  selection: "#74c7ec",
+  selectionSoft: "#2c3448",
 } as const;
 
 export const notePalette = [

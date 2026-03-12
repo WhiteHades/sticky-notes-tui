@@ -2,19 +2,43 @@ import { randomUUID } from "node:crypto";
 
 import { notePalette, theme } from "../theme";
 import type { Note } from "../types";
-import { compactWhitespace, wrapText } from "./text";
+import { compactWhitespace, truncateText, wrapText } from "./text";
 
 export type Direction = "left" | "right" | "up" | "down";
 
-export function defaultPosition(index: number): Pick<Note, "x" | "y"> {
+const noteGapX = 2;
+const noteGapY = 1;
+const noteHeight = 10;
+
+export function boardColumns(boardWidth: number): number {
+  if (boardWidth >= 120) {
+    return 3;
+  }
+
+  if (boardWidth >= 74) {
+    return 2;
+  }
+
+  return 1;
+}
+
+export function boardNoteWidth(boardWidth: number): number {
+  const columns = boardColumns(boardWidth);
+  const usableWidth = Math.max(30, boardWidth - 2);
+  const width = Math.floor((usableWidth - noteGapX * (columns - 1)) / columns);
+  return Math.max(28, Math.min(40, width));
+}
+
+export function defaultPosition(index: number, boardWidth = 96): Pick<Note, "x" | "y"> {
+  const width = boardNoteWidth(boardWidth);
   return {
-    x: 3 + (index % 4) * 24,
-    y: 3 + Math.floor(index / 4) * 10,
+    x: 1 + (index % boardColumns(boardWidth)) * (width + noteGapX),
+    y: 1 + Math.floor(index / boardColumns(boardWidth)) * (noteHeight + noteGapY),
   };
 }
 
-export function createEmptyNote(index = 0): Note {
-  const position = defaultPosition(index);
+export function createEmptyNote(index = 0, boardWidth = 96): Note {
+  const position = defaultPosition(index, boardWidth);
   const now = Date.now();
 
   return {
@@ -49,7 +73,11 @@ export function normaliseLegacyContent(title: string, content: string): string {
 
 export function noteText(note: Pick<Note, "content">): string {
   const text = note.content.trim();
-  return text.length > 0 ? text : "empty note";
+  return text.length > 0 ? text : "new note";
+}
+
+export function noteTitle(note: Pick<Note, "content">, width = 26): string {
+  return truncateText(compactWhitespace(noteText(note)), Math.max(8, width));
 }
 
 function hashValue(value: string): number {
@@ -68,30 +96,16 @@ export function notePreview(note: Pick<Note, "content">, width = 60): string {
   return compactWhitespace(noteText(note)).slice(0, width) || "empty note";
 }
 
-export function measureNote(content: string) {
+export function measureNote(content: string, preferredWidth = 36) {
   const printable = noteText({ content });
-  const compact = compactWhitespace(printable);
-  const longestToken = Math.max(...compact.split(/\s+/).map((chunk) => chunk.length), 0);
-
-  let innerWidth = 16;
-  if (compact.length > 48) {
-    innerWidth = 20;
-  }
-  if (compact.length > 120) {
-    innerWidth = 24;
-  }
-  if (compact.length > 220) {
-    innerWidth = 28;
-  }
-
-  innerWidth = Math.max(innerWidth, Math.min(28, longestToken));
+  const innerWidth = Math.max(16, Math.min(36, preferredWidth - 4));
 
   const lines = wrapText(printable, innerWidth);
-  const visibleLines = lines.slice(0, 10);
+  const visibleLines = lines.slice(0, 6);
 
   return {
     width: innerWidth + 4,
-    height: Math.max(5, visibleLines.length + 3),
+    height: noteHeight,
     lines: visibleLines,
   };
 }
@@ -100,12 +114,24 @@ export function sortByBoardOrder(notes: Note[]): Note[] {
   return [...notes].sort((left, right) => left.y - right.y || left.x - right.x || left.z - right.z);
 }
 
-export function clampPosition(note: Note, maxWidth: number, maxHeight: number) {
-  const { width, height } = measureNote(note.content);
+export function clampPosition(note: Note, maxWidth: number, maxHeight: number, preferredWidth?: number) {
+  const { width, height } = measureNote(note.content, preferredWidth);
   return {
     x: Math.max(0, Math.min(Math.max(0, maxWidth - width), note.x)),
     y: Math.max(1, Math.min(Math.max(1, maxHeight - height), note.y)),
   };
+}
+
+export function arrangeNotes(notes: Note[], boardWidth: number, boardHeight: number): Note[] {
+  const cardWidth = boardNoteWidth(boardWidth);
+
+  return sortByBoardOrder(notes).map((note, index) => {
+    const positioned = { ...note, ...defaultPosition(index, boardWidth) };
+    return {
+      ...note,
+      ...clampPosition(positioned, boardWidth, boardHeight, cardWidth),
+    };
+  });
 }
 
 export function findDirectionalNote(notes: Note[], currentId: string | null, direction: Direction): Note | null {

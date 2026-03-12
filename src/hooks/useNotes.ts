@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { Note } from "../types";
-import { clampPosition, createEmptyNote, findDirectionalNote, sortByBoardOrder } from "../utils/notes";
+import { arrangeNotes as arrangeBoardNotes, clampPosition, createEmptyNote, findDirectionalNote, sortByBoardOrder } from "../utils/notes";
 import { loadNotes, saveNotes } from "../utils/storage";
 
 const saveDelayMs = 220;
@@ -116,8 +116,8 @@ export function useNotes() {
     setSelectedId(orderedNotes[orderedNotes.length - 1]?.note_id ?? null);
   }, [orderedNotes]);
 
-  const addFreshNote = useCallback(() => {
-    const note = createEmptyNote(notes.length);
+  const addFreshNote = useCallback((boardWidth?: number) => {
+    const note = createEmptyNote(notes.length, boardWidth);
     setNotes((current) => [...current, note]);
     setSelectedId(note.note_id);
     return note;
@@ -208,6 +208,10 @@ export function useNotes() {
     await persist(notes);
   }, [notes, persist]);
 
+  const arrangeNotes = useCallback((boardWidth: number, boardHeight: number) => {
+    setNotes((current) => arrangeBoardNotes(current, boardWidth, boardHeight));
+  }, []);
+
   return {
     loaded,
     notes,
@@ -225,6 +229,7 @@ export function useNotes() {
     bringToFront,
     moveNote,
     moveSelectedBy,
+    arrangeNotes,
     saveNow,
   };
 }
