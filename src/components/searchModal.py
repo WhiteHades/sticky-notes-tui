@@ -1,73 +1,106 @@
+from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Input, Button, ListView, ListItem, Label
-from textual.containers import Vertical, Horizontal
+from textual.timer import Timer
+from textual.widgets import Button, Input, Label, ListItem, ListView
+
 from models import Note
 
+
 class SearchModal(ModalScreen[Note]):
-    """Search notes by title, content, or tags"""
-    
-    BINDINGS = [("escape", "dismiss", "Close")] 
-    all_notes: list = []
-    matching_notes: list = [] 
-    
-    def __init__(self, notes: list, **kwargs):
-        self.all_notes = notes
-        self.matching_notes = []
+    BINDINGS = [("escape", "dismiss", "Close")]
+    MAX_RESULTS = 20
+    SEARCH_DELAY = 0.08
+
+    def __init__(self, notes: list[Note], **kwargs):
         super().__init__(**kwargs)
-    
+        self.all_notes = notes
+        self.matching_notes: list[Note] = []
+        self.search_index = [
+            (note, f"{note.noteTitle}\n{note.content}\n{note.tags}".casefold())
+            for note in notes
+        ]
+        self._pending_query = ""
+        self._search_timer: Timer | None = None
+
     def compose(self):
         with Vertical(id="searchContainer"):
-            yield Label("🔍 Search Notes", id="searchTitle")
-            yield Input(placeholder="Search by title, content, or tags...", id="searchInput")
+            yield Label("Search Notes", id="searchTitle")
+            yield Input(
+                placeholder="search by title, content, or tags...", id="searchInput"
+            )
             yield ListView(id="searchResults")
             with Horizontal(id="searchButtons"):
                 yield Button("Close", variant="primary", id="close")
-    
+
     def on_mount(self) -> None:
-        """Focus input when modal opens"""
         self.query_one("#searchInput", Input).focus()
-    
+        self._render_results([], "type to search...")
+
     def on_input_changed(self, event: Input.Changed) -> None:
-        """Filter notes as user types"""
-        search_term = event.value.lower().strip()
-        results_view = self.query_one("#searchResults", ListView)
-        
-        # Clear previous results
-        results_view.clear()
-        self.matching_notes = []
-        
-        if not search_term:
-            results_view.append(ListItem(Label("Type to search...")))
+        self._pending_query = event.value.casefold().strip()
+        if self._search_timer is not None:
+            self._search_timer.stop()
+        self._search_timer = self.set_timer(
+            self.SEARCH_DELAY,
+            self._flush_search,
+            name="search-debounce",
+        )
+
+    def _flush_search(self) -> None:
+        self._search_timer = None
+        query = self._pending_query
+        if not query:
+            self.matching_notes = []
+            self._render_results([], "type to search...")
             return
-        
-        # Filter notes
-        for note in self.all_notes:
-            if (search_term in note.noteTitle.lower() or 
-                search_term in note.content.lower() or 
-                search_term in note.tags.lower()):
-                self.matching_notes.append(note)
-        
-        # Display results
-        if self.matching_notes:
-            for note in self.matching_notes:
-                preview = note.content[:50] + "..." if len(note.content) > 50 else note.content
-                results_view.append(
-                    ListItem(Label(f"📌 {note.noteTitle}\n   {preview}"))
-                )
+
+        matches: list[Note] = []
+        for note, haystack in self.search_index:
+            if query in haystack:
+                matches.append(note)
+                if len(matches) >= self.MAX_RESULTS:
+                    break
+
+        self.matching_notes = matches
+        if matches:
+            self._render_results(matches)
         else:
-            results_view.append(ListItem(Label("❌ No notes found")))
-    
+            self._render_results([], f"no matches for '{query}'")
+
+    def _render_results(
+        self, notes: list[Note], empty_message: str | None = None
+    ) -> None:
+        results_view = self.query_one("#searchResults", ListView)
+        results_view.clear()
+
+        if not notes:
+            results_view.append(ListItem(Label(empty_message or "no matches")))
+            return
+
+        items = []
+        for note in notes:
+            title = note.noteTitle.strip() or "untitled"
+            preview = " ".join(note.content.split())[:60]
+            tags = note.tags.strip()
+            line = f"  {title}"
+            if preview:
+                line = f"{line} - {preview}"
+            if tags:
+                line = f"{line}  #{tags}"
+            items.append(ListItem(Label(line)))
+        results_view.extend(items)
+
     def on_list_view_selected(self, event: ListView.Selected) -> None:
-        """When user clicks on a search result"""
-        if event.list_view.index is not None:
-            index = event.list_view.index
-            if 0 <= index < len(self.matching_notes):
-                selected_note = self.matching_notes[index]
-                self.dismiss(selected_note)  # Return the selected note
-    
+        index = event.list_view.index
+        if index is not None and 0 <= index < len(self.matching_notes):
+            self.dismiss(self.matching_notes[index])
+
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "close":
-            self.dismiss(None)  # Return None when closing
+            self.dismiss(None)
 
-    def action_dismiss(self):
-        self.dismiss()
+    async def action_dismiss(self, result: Note | None = None) -> None:
+        if self._search_timer is not None:
+            self._search_timer.stop()
+            self._search_timer = None
+        self.dismiss(result)
