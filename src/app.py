@@ -1,7 +1,6 @@
 import copy
 import uuid
 from storage import NoteStorage
-from dataclasses import replace
 from textual.app import App, ComposeResult
 from textual.screen import ModalScreen
 from textual.widgets import Header, Footer, Static
@@ -100,7 +99,6 @@ class StickyNotesApp(App):
         self.notify("Notes sorted!", severity="information")
 
     def sort_notes(self):
-        """Sort notes: pinned first, then by priority"""
         container = self.query_one("#notes")
         notes = list(self.query(StickyNote))
 
@@ -142,7 +140,6 @@ class StickyNotesApp(App):
 
     @work
     async def action_search_notes(self):
-        """Search through all notes"""
         all_sticky_notes = list(self.query(StickyNote))
         all_notes = [sn.note for sn in all_sticky_notes]
 
@@ -193,7 +190,9 @@ class StickyNotesApp(App):
             notes_with_colors.append((sticky_note.note, sticky_note.color))
 
         if self.storage.save_notes(notes_with_colors):
-            self.notify(f"💾 Saved {len(notes_with_colors)} notes!", severity="success")
+            self.notify(
+                f"Saved {len(notes_with_colors)} notes!", severity="information"
+            )
         else:
             self.notify("Failed to save notes", severity="error")
 
