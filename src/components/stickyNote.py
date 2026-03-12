@@ -2,29 +2,24 @@ from textual.widgets import Static
 from textual.reactive import reactive
 from models import Note
 
+
 class StickyNote(Static):
     can_focus = True
-    note: Note 
-    color = reactive("white")
-    user_color = reactive(None) 
+    note: Note
+    color = reactive("#45475a")
+    user_color = reactive(None)
     priority_level = reactive(0)
-    is_pinned = reactive(False,init=False)
+    is_pinned = reactive(False, init=False)
 
     PRIORITY_COLORS = {
-        0: "white",      # trivial
-        1: "#a0c4ff",      # low
-        2: "#fdffb6",    # medium
-        3: "#ffd6a5",    # high
-        4: "#ffadad"        # critical
+        0: "#45475a",
+        1: "#89b4fa",
+        2: "#f9e2af",
+        3: "#fab387",
+        4: "#f38ba8",
     }
 
-    PRIORITY_NAMES = {
-        0: "Trivial",
-        1: "Low",
-        2: "Medium",
-        3: "High",
-        4: "Critical"
-    }
+    PRIORITY_NAMES = {0: "Trivial", 1: "Low", 2: "Medium", 3: "High", 4: "Critical"}
 
     def __init__(self, note: Note, **kwargs):
         super().__init__(**kwargs)
@@ -40,33 +35,34 @@ class StickyNote(Static):
         yield Static(self.note.content, id="noteContent")
 
     def update_title(self):
-        """Update border title with pin and priority indicators"""
         pin_icon = "📌 " if self.is_pinned else ""
-        priority_name = self.PRIORITY_NAMES.get(self.priority_level, "")
         priority_icon = self.get_priority_icon()
-        
+
         self.border_title = f"{pin_icon}{self.note.noteTitle} {priority_icon}"
+        self.styles.border_title_color = "#cdd6f4"
+        self.styles.border_subtitle_color = self.color
 
     def get_priority_icon(self):
         """Get icon based on priority level"""
         icons = {
-            0: "",           # trivial  - no icon
-            1: "🔵",         # low
-            2: "🟡",         # medium
-            3: "🟠",         # high
-            4: "🔴"          # critical
+            0: "",  # trivial  - no icon
+            1: "🔵",  # low
+            2: "🟡",  # medium
+            3: "🟠",  # high
+            4: "🔴",  # critical
         }
         return icons.get(self.priority_level, "")
 
-    def update_border_color(self):  
+    def update_border_color(self):
         if self.user_color is not None:
             self.color = self.user_color
         else:
             self.color = self.PRIORITY_COLORS.get(self.priority_level, "white")
 
     def watch_color(self, color: str):
-        """React to color changes"""
         self.styles.border = ("heavy" if self.is_pinned else "solid", color)
+        self.styles.border_title_color = "#cdd6f4"
+        self.styles.border_subtitle_color = color
 
     def watch_priority_level(self, priority: int):
         """React to priority changes"""

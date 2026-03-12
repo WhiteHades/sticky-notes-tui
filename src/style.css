@@ -1,59 +1,118 @@
+Screen {
+    background: #1e1e2e;
+    color: #bac2de;
+}
 
-StickyNote{
-    border: solid white;
+Header {
+    background: #181825;
+    color: #bac2de;
+}
+
+HeaderIcon {
+    color: #89b4fa;
+}
+
+HeaderTitle {
+    color: #bac2de;
+}
+
+HeaderClock {
+    background: #181825;
+    color: #bac2de;
+}
+
+Footer {
+    background: #181825;
+    color: #bac2de;
+}
+
+FooterKey {
+    background: #181825;
+}
+
+FooterKey > .footer-key--key {
+    background: #313244;
+    color: #f38ba8;
+}
+
+FooterKey > .footer-key--description {
+    background: #181825;
+    color: #bac2de;
+}
+
+FooterLabel {
+    background: #181825;
+    color: #bac2de;
+}
+
+#notes {
+    background: #1e1e2e;
+    border: none;
+    margin: 0;
+    padding: 1;
+    layout: grid;
+    grid-size: 3;
+    grid-gutter: 1 2;
+    align-vertical: top;
+    grid-rows: auto;
+    height: 1fr;
+}
+
+StickyNote {
     width: 100%;
     height: 15;
     min-height: 15;
-    
+    background: #313244;
+    border: solid #45475a;
+    color: #bac2de;
 }
 
-StickyNote #noteContent{
-    background: $boost;
+StickyNote #noteContent {
+    background: #313244;
+    color: #bac2de;
     height: 100%;
-    
     margin: 0 1;
-    
 }
 
-
-StickyNote:focus{
-    border: dashed $accent;
-    background:$panel;
-    
+StickyNote:focus {
+    background: #45475a;
+    border: thick #b4befe;
 }
 
-DeleteModal {
+DeleteModal,
+EditModal,
+SearchModal {
     align: center middle;
-    background: rgba(0, 0, 0, 0.5); 
+    background: rgba(17, 17, 27, 0.82);
 }
 
-
-
-EditModal{
-    align: center middle;
-    background: rgba(0, 0, 0, 0.5);
-
+#editModalContainer,
+#deleteModalContainer,
+#searchContainer {
+    background: #1e1e2e;
+    color: #bac2de;
+    border: solid #cba6f7;
 }
 
 #editModalContainer {
-    
     padding: 2;
     width: 60;
     height: 30;
-    border: solid $primary;
-    background: $surface;
+}
+
+#editModalContainer #title,
+#editModalContainer #content,
+#searchResults {
+    background: #313244;
+    color: #bac2de;
 }
 
 #editModalContainer #title {
-    
     min-height: 5;
-    background: $panel;
 }
 
 #editModalContainer #content {
-    
     min-height: 20;
-    background: $panel;
 }
 
 #deleteModalContainer {
@@ -63,35 +122,18 @@ EditModal{
     padding: 2;
     width: 60;
     height: 15;
-    border: solid $primary;
-    background: $surface;
 }
 
 #question {
     column-span: 2;
     height: 1fr;
-    margin:0 0;
+    margin: 0;
     content-align: center middle;
+    color: #bac2de;
 }
-
-
-#notes{
-    border: ascii white;
-    margin: 1;
-    layout:grid;
-    grid-size:3;
-    grid-gutter:1 2;
-    align-vertical:top;
-    grid-rows: auto;
-    height: auto;
-    
-}
-
 
 #searchContainer {
-    background: $surface;
-    border: solid $primary;
-    width: 80;  
+    width: 80;
     height: 40;
     padding: 1 2;
 }
@@ -100,6 +142,7 @@ EditModal{
     text-align: center;
     text-style: bold;
     margin-bottom: 1;
+    color: #bac2de;
 }
 
 #searchInput {
@@ -108,7 +151,7 @@ EditModal{
 
 #searchResults {
     height: 20;
-    border: solid $accent;
+    border: solid #b4befe;
     margin-bottom: 1;
 }
 
@@ -117,6 +160,34 @@ EditModal{
     grid-gutter: 1;
 }
 
-SearchModal {
-    align: center middle;
+Label,
+Checkbox,
+Input,
+OptionList,
+ListView,
+ListItem,
+Button {
+    color: #bac2de;
+}
+
+Input,
+TextArea,
+OptionList,
+ListView {
+    background: #313244;
+}
+
+Button.-primary {
+    background: #89b4fa;
+    color: #1e1e2e;
+}
+
+Button.-success {
+    background: #a6e3a1;
+    color: #1e1e2e;
+}
+
+Button.-error {
+    background: #f38ba8;
+    color: #1e1e2e;
 }
